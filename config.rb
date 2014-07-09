@@ -1,0 +1,10 @@
+http_path = "/"
+sass_dir = '../honors/app/webroot/css/sass'
+css_dir = '../honors/app/webroot/css'
+javascripts_dir = '../honors/app/webroot/js'
+http_stylesheets_path = 'css'
+http_javascripts_path = 'js'
+http_images_path = 'img'
+environment = :development
+output_style = :compressed
+line_comments = false

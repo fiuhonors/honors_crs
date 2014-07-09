@@ -1,0 +1,256 @@
+@import "mixins";
+@import "reset";
+@import "960gs";
+
+#login_box{
+	margin-top:70px;
+}
+
+.info_box{
+    text-align:center;
+    margin-bottom:15px;
+    padding:15px;
+    background-position: 10px center;
+    background-repeat: no-repeat;
+    @include border-radius();
+}
+
+hr{
+    height:1px;
+    background:#777;
+    margin-top:10px;
+    margin-bottom:10px;
+    border:0px;
+}
+
+:not(form) > div > .error, :not(form) > div > div > .error{
+    @extend .info_box;
+    color: #D8000C;
+    background-color: #FFBABA;
+    background-image: url('../img/Knob Cancel.png');
+    
+}
+
+:not(form) > div > .error_noknob, :not(form) > div > div > .error_noknob{
+    @extend .info_box;
+    color: #D8000C;
+    background-color: #FFBABA;
+}
+
+:not(form) > div > .success, :not(form) > div > div > .success{
+    @extend .info_box;
+    color: #4F8A10;
+    background-color: #DFF2BF;
+    background-image: url('../img/Knob Valid Green.png');
+}
+
+form{
+        display:inline-block;
+	width:100%;
+        margin-bottom:15px;
+	& > label{
+		display:block;
+		width:100%;
+		margin-top:15px;
+		margin-bottom:15px;
+		text-align:left;
+		color:#444;
+		font-weight:bold;
+                input[type="text"], input[type="password"], input[type="number"], select{
+                    background:#fafafa;
+                    display:block;
+                    width:90%;
+                    padding:5px;
+                    color:#444;
+                    @include border-radius(5px);
+                    border:1px solid #ccc;
+                    margin-top:5px;
+                }
+                input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus, select:focus{
+                    outline:none;
+                    border:1px solid #aaa;
+                }
+                
+	}
+        div:not(.grid_1),
+        div:not(.grid_2),
+        div:not(.grid_3),
+        div:not(.grid_4),
+        div:not(.grid_5),
+        div:not(.grid_6),
+        div:not(.grid_7),
+        div:not(.grid_8),
+        div:not(.grid_9),
+        div:not(.grid_10),
+        div:not(.grid_11),
+        div:not(.grid_12)
+        {
+                label{
+                    display:block;
+                    width:100%;
+                    text-align:left;
+                    color:#444;
+                    font-weight:bold;
+                }
+                input[type="text"],
+                input[type="password"],
+                input[type="email"],
+                input[type="number"],
+                select, 
+                textarea{
+                    background:#fafafa;
+                    display:block;
+                    width:90%;
+                    padding:5px;
+                    color:#444;
+                    @include border-radius(5px);
+                    border:1px solid #ccc;
+                    margin-top:5px;
+                }
+                input[type="text"]:focus,
+                input[type="password"]:focus,
+                input[type="email"]:focus,
+                input[type="number"]:focus,
+                select:focus,
+                textarea:focus{
+                    outline:none;
+                    border:1px solid #aaa;
+                }
+                input[type="radio"], input[type="checkbox"]{
+                    & + label{
+                        display:block;
+                        width:auto;
+                        font-weight:normal;
+                        line-height:30px;
+                    }
+                    display:inline-block;
+                    margin-top:20px;
+                    margin-bottom:20px;
+                    margin-right:15px;
+                }
+                margin-top:15px;
+                margin-bottom:15px;
+	}
+        div.error{
+            input.form-error{
+                border:1px solid #E35962;
+            }
+            .error-message{
+                font-size:10px;
+                text-align:center;
+                color:red;
+            }
+        }
+        &.inline_elements{
+            div, label, input[type="text"], input[type="password"], input[type="email"], input[type="number"], select, textarea{
+                display:inline-block !important;
+                width:auto !important;
+            }
+            label{
+                margin-right:15px;
+            }
+            input[type="text"], input[type="password"], input[type="email"], input[type="number"], select, textarea{
+                min-width:220px !important;
+            }
+        }
+}
+
+.callout_container{
+        margin-top:40px;
+        margin-bottom:15px;
+	@include background-gradient(#fff, #fafafa);
+	@include border-radius();
+	@include box-shadow(0px, 1px, 1px, #888);
+	overflow:hidden;
+	& > div{
+		@extend .alpha;
+		@extend .omega;
+	}
+	.callout_title{
+		margin-top:15px;
+		background:#1e5799;
+		@include background-gradient(#3478b2, #1a5e98);
+		text-align:center;
+		padding:12px;
+		font-size:16px;
+		margin-bottom:15px;
+		color:white;
+		font-weight:bold;
+	}
+}
+
+.header{
+	height:60px;
+	width:100%;
+	display:table;
+	@include background-gradient(#254170,#3a547e);
+	border-bottom:10px solid #A9892C;
+	margin-bottom:30px;
+	& * {
+		color:white;
+	}
+	h1{
+		position:relative;
+		top:14px - $h1/2;
+	}
+	small{
+		display:block;
+		font-size:15px;
+        }
+	.menu{
+		font-size:$font-size + 1px;
+		height:100%;
+		li{
+			cursor:pointer;
+			height:100%;
+			line-height:75px;
+			text-align:center;
+			color:#fafafa;
+		}
+		& > li:hover{
+                        @include background-gradient(#2f528d, #345b9c);
+			@include text-shadow(0px, 0px, 1px, #fff);
+		}
+		ul{ display:none; background:#345b9c; }
+		li:hover ul{
+			display:block;
+			position:absolute;
+			width:inherit;
+			li:hover{
+				color:#fff;
+				@include text-shadow(0px, 1px, 1px, #fff);
+                                background:#2f528d;
+			}
+			a{
+				width:100%;
+				height:100%;
+				display:span;
+			}
+		}
+		li ul li{
+			font-size:$font-size - 1px; 
+			line-height:$font-size + 35px;
+			a{
+				width:100%;
+				height:100%;
+				display:block;
+			}
+		}
+	}
+}
+
+table{
+    width:100%;
+    display:block;
+    margin-top:10px;
+    margin-bottom:10px;
+    td{
+        border:1px solid #ababab;
+        white-space:no-wrap;
+        padding:10px;
+    }
+}
+
+.align_right {
+ text-align: right;
+}
