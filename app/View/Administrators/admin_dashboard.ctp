@@ -8,9 +8,8 @@
             instructors, please head to the <u>Instructors</u> section.</h3>
         <br/>
         <h3>Should you face any problem while adding, editing, or searching data,
-            and you feel that this is a software issue, please do not hesitate to
-            contact Alastair Paragas at <u>alastairparagas@gmail.com</u>, or Robin Mayrand
-            at <u>rcmayrand@outlook.com</u>.</h3>
+            and you feel that this is a technical issue, please do not hesitate to
+            contact Alastair Paragas at <u>alastairparagas@gmail.com</u>.
         <br/>
         <h3>Just as a note, before adding courses, make sure that the course's instructor
             currently exists in the system. To add a new instructor, just
