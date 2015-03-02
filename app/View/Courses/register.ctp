@@ -1,4 +1,4 @@
-<?php if($student_term_entered == "Fall 2014" || empty($student_schedule)){ ?>
+<?php /* if($student_term_entered == "Fall 2014" || empty($student_schedule)){ */ if(0==0){ ?>
 <div class='container_12'>
     <div class='grid_12'>
         <h2>Course Selection</h2>
@@ -35,6 +35,27 @@
                     
                     echo $this->Html->tableCells(array('ID','Term','Section','Catalog','Date','Time','Location','Instructor','Description','Availability'));
                     foreach(${$course_type} as $course){
+                        $enrollmentElement = "";
+                        if ($course['Course']['special'] == 1) {
+                            $enrollmentElement = 
+                                $this->Html->link('Special Class', 
+                                    array('controller' => 'courses', 'action' => 'view', $course['Course']['id']),
+                                    array('target' => '_blank')
+                                );
+                        } 
+                        elseif ($course['Course']['capacity'] > $course['Course']['oc_capacity']) {
+                            $enrollmentElement = 
+                                $this->Form->input($course_type.'_chosen', array(
+                                    'options' => array($course['Course']['id'] . ',' 
+                                    . $course['Course']['catalog'] . ','
+                                    . $course['Course']['section'] => ''),
+                                    'type' => 'radio',
+                                    'label' => false,
+                                    'legend' => false,
+                                    'hiddenField' => false
+                                    )
+                                );
+                        }
                         echo $this->Html->tableCells(
                                 array(
                                     $course['Course']['id'],
@@ -48,17 +69,7 @@
                                     $this->Html->link('View More', 
                                             array('controller' => 'courses', 'action' => 'view', $course['Course']['id']), array('target' => '_new')),
                                     $course['Course']['capacity'] > $course['Course']['oc_capacity'] ? 'Open' : 'Closed',
-                                    $course['Course']['capacity'] > $course['Course']['oc_capacity'] ?
-                                        $this->Form->input($course_type.'_chosen', array(
-                                            'options' => array($course['Course']['id'] . ',' 
-                                            . $course['Course']['catalog'] . ','
-                                            . $course['Course']['section'] => ''),
-                                            'type' => 'radio',
-                                            'label' => false,
-                                            'legend' => false,
-                                            'hiddenField' => false
-                                            )
-                                        ) : ''
+                                    $enrollmentElement
                                )
                         );
                     }

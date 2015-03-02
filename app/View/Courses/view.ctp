@@ -14,11 +14,25 @@
         </div>
     </div>
     
+    <?php if ($course_details['Course']['special'] == 1) { ?>
+        <div class="grid_12">
+        <br/>
+        <br/>
+        <h3><b>Notice if you want to enroll into this class:</b></h3>
+        <?php if ($course_details['Course']['specialMessage']) { ?>
+                <h3><?php echo utf8_encode($course_details['Course']['specialMessage']); ?></h3>
+        <? } else { ?>
+                <h3>This class is a special enrollment class. Please contact Pablo Currea at <a href="mailto:jcurr001@fiu.edu">jcurr001@fiu.edu</a> if you want to get into this class.</h3>
+        <?php } ?>
+        </div>
+    <?php } ?>
+    
     <div class='grid_12'>
         <br/>
         <h3><?php echo utf8_encode($course_details['Course']['description']); ?></h3>
         <br/>
-        <h3>Syllabus: <?php echo $course_details['Course']['uploaded_file']!='' ? $course_details['Course']['uploaded_file'] : 'No Syllabus provided'; ?></h3>
+        <h3>
+        Syllabus: <?php echo $course_details['Course']['uploaded_file']!='' ? $course_details['Course']['uploaded_file'] : 'No Syllabus provided'; ?>           </h3>
     </div>
     
     <div class='grid_12' id='calendarForClass'>

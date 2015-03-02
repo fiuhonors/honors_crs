@@ -209,7 +209,6 @@ class CoursesController extends AppController {
         
         list($course_details['Course']['date-from'], $course_details['Course']['date_to']) = $course_details['Course']['date'];
         $this->set('course_details', $course_details);
-        
     }
     
         
