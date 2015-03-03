@@ -1,4 +1,4 @@
-<?php /* if($student_term_entered == "Fall 2014" || empty($student_schedule)){ */ if(0==0){ ?>
+<?php if($student_term_entered == "Fall 2014" || empty($student_schedule)){ ?>
 <div class='container_12'>
     <div class='grid_12'>
         <h2>Course Selection</h2>

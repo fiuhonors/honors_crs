@@ -25,7 +25,7 @@
         </div>
         <div class='grid_6 prefix_3 suffix_3'>
             <div class='error_noknob'>
-                CRS will open for those who have not selected a course on May 1, 2014. The classes will be put on your schedule (my.fiu.edu) by June 23, 2014.
+                CRS is currently closed. Get ready for the CRS presentation and walkthrough Honors events starting Tuesday, March 3 2015!
             </div>
         </div>  
 </div>
