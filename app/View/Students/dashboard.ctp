@@ -43,7 +43,7 @@
         <h3>To begin selecting your Honors College courses, click on the button in the menu bar above: CLASSES.</h3>
         <h3>You will be able to select from courses in your grade level (i.e. if you are a sophomore, you will see the junior options, etc.).</h3>
         <br/>
-        <h3>Registration Problems? Contact Pablo Currea at <a href="mailto:jcurr001@fiu.edu">jcurr001@fiu.edu</a>.</h3>
+        <h3>Registration Problems? Contact Pablo Currea at <a href="mailto:jpcurrea@fiu.edu">jpcurrea@fiu.edu</a>.</h3>
         <h3>Technical Problems? Contact Alastair Paragas at <a href="mailto:alastairparagas@gmail.com">alastairparagas@gmail.com</a>.</h3>
     </div>
 </div>
