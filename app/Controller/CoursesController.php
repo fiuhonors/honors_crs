@@ -101,6 +101,7 @@ class CoursesController extends AppController {
         $this->set('courses_realcount', $courses_list);
     }
     
+    
     public function admin_registrees($course_catalog,$course_section){
         $students = $this->Course->Student->find('all');
         $students_list = array();
@@ -111,6 +112,84 @@ class CoursesController extends AppController {
             }
         }
         $this->set('students', $students_list);
+    }
+    
+    
+    public function admin_lock_confirm($course_catalog,$course_section) {
+        $this->set('course_catalog', $course_catalog);
+        $this->set('course_section', $course_section);
+    }
+    
+    public function admin_lockAction($course_catalog, $course_section, $confirmed) {
+        if (isset($confirmed) && $confirmed == true) {
+            $this->loadModel('Student');
+            $this->Student->recursive = -1;
+            $students = $this->Course->Student->find('all');
+            foreach($students as $student){
+                $student_courses = unserialize($student['Student']['f_schedule']);
+                // Student is in the specific class being locked
+                if (is_array($student_courses) 
+                    && array_key_exists($course_catalog, $student_courses) 
+                    && $student_courses[$course_catalog] == $course_section){
+                    $student_courses_lockedInto = unserialize($student['Student']['f_schedule_lock']);
+                    if (!is_array($student_courses_lockedInto)) {
+                        $student_courses_lockedInto = array();
+                    }
+                    if (!in_array($course_catalog, $student_courses_lockedInto)) {
+                        $student_courses_lockedInto[] = $course_catalog;
+                        $this->Student->id = $student['Student']['id'];
+                        $this->Student->saveField("f_schedule_lock", serialize($student_courses_lockedInto));
+                    }
+                }
+            }
+            $this->Session->setFlash("Students of $course_catalog".':'."$course_section were succesfully locked in.", "default", array(
+                'class' => 'success'
+            ));
+        } else {
+            $this->Session->setFlash("Students of $course_catalog".':'."$course_section were not locked in. Try again.", "default", array(
+                'class' => 'error'
+            ));
+        }
+        return $this->redirect(array('controller' => 'courses', 'action' => 'enrollment'));
+    }
+    
+    public function admin_unlockAction($course_catalog, $course_section, $confirmed) {
+        if (isset($confirmed) && $confirmed == true) {
+            $this->loadModel('Student');
+            $this->Student->recursive = -1;
+            $students = $this->Course->Student->find('all');
+            foreach($students as $student){
+                $student_courses = unserialize($student['Student']['f_schedule']);
+                $student_courses_lockedInto = unserialize($student['Student']['f_schedule_lock']);
+                // Student is in the specific class being unlocked
+                if (is_array($student_courses) 
+                    && array_key_exists($course_catalog, $student_courses) 
+                    && $student_courses[$course_catalog] == $course_section){
+                    // Student is locked into a course, and this specific class is one of those the student is locked into
+                    if (is_array($student_courses_lockedInto) 
+                        && in_array($course_catalog, $student_courses_lockedInto)) {
+                        unset($student_courses_lockedInto[array_search($course_catalog, $student_courses_lockedInto)]);
+                        $student_courses_lockedInto = array_values($student_courses_lockedInto);
+                        if (is_array($student_courses_lockedInto) && count($student_courses_lockedInto) > 0) {
+                            $this->Student->id = $student['Student']['id'];
+                            $this->Student->saveField("f_schedule_lock", serialize($student_courses_lockedInto));
+                        } else {
+                            $this->Student->id = $student['Student']['id'];
+                            $this->Student->saveField("f_schedule_lock", "");
+                        }
+                    }
+                    
+                }
+            }
+            $this->Session->setFlash("Students of $course_catalog".':'."$course_section were succesfully unlocked.", "default", array(
+                'class' => 'success'
+            ));
+        } else {
+            $this->Session->setFlash("Students of $course_catalog".':'."$course_section were not unlocked. Try again.", "default", array(
+                'class' => 'error'
+            ));
+        }
+        return $this->redirect(array('controller' => 'courses', 'action' => 'enrollment'));
     }
 
     
@@ -219,6 +298,7 @@ class CoursesController extends AppController {
         $student_data = $this->Course->Student->findById($this->Auth->user('id'));
         $student_schedule = unserialize($student_data['Student']['f_schedule']);
         $student_schedule = empty($student_schedule) ? array() : $student_schedule;
+        $this->set('student_schedule_lock', unserialize($student_data['Student']['f_schedule_lock']));
         $this->set('student_term_entered', $student_data['Student']['term_entered']);
 		$this->set('student_schedule', $student_schedule);
 		
@@ -264,6 +344,7 @@ class CoursesController extends AppController {
                 ))
             );
             $this->set($course_types[$i].'_label', $course_choices_labels[$course_choices[$i]]);
+            $this->set($course_types[$i].'_catalog', $course_choices[$i]);
         }
             
         if ($this->request->is('post')) {

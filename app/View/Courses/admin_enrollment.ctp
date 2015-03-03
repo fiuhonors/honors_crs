@@ -26,7 +26,8 @@
                        "Capacity",
                        "Occupied Capacity",
                        "Actual OC",
-                       "Status"
+                       "Status",
+                       "Lock Class"
                    )
                    );
            
@@ -49,9 +50,14 @@
                             $course['Course']['instructor'],
                             $course['Course']['capacity'],
                             $course['Course']['oc_capacity'],
-                            $this->Html->link($realcount, array('controller'=>'courses','action'=>'registrees',$course['Course']['catalog'],$course['Course']['section']), 
-                                    array('class'=>$importance)),
-                            $course['Course']['capacity'] > $course['Course']['oc_capacity'] ? 'Open' : 'Closed'  
+                            $this->Html->link($realcount, 
+                                array('controller'=>'courses','action'=>'registrees',$course['Course']['catalog'],$course['Course']['section']), 
+                                array('class'=>$importance)
+                            ),
+                            $course['Course']['capacity'] > $course['Course']['oc_capacity'] ? 'Open' : 'Closed',  
+                            $this->Html->link("Lock/Unlock Class", 
+                                array('controller'=>'courses','action'=>'lock_confirm',$course['Course']['catalog'],$course['Course']['section'])
+                            )
                         )
                         );
             }

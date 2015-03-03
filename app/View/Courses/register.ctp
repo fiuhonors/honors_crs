@@ -22,7 +22,7 @@
     <?php 
     echo $this->Form->create('Course');
     foreach($course_types as $course_type){
-        if(!empty(${$course_type})){
+        if(!empty(${$course_type}) && !in_array(${$course_type.'_catalog'}, $student_schedule_lock)){
     ?>
         <div class='grid_12'>
             <table>
@@ -77,7 +77,21 @@
                 </tbody>
             </table>
         </div>
-    <?php } } ?>
+    <?php 
+        } else if (in_array(${$course_type.'_catalog'}, $student_schedule_lock)) {
+    ?>
+        <div class="container_12">
+            <div class="grid_12">
+                <div class="error">
+                   You have been locked from choosing a course of type <?php echo ${$course_type.'_catalog'}; ?>.
+                </div>
+            </div>            
+        </div>
+            
+    <?php
+        }
+    } 
+    ?>
     <div class='grid_12'>
     <?php
     if(!empty($course_types)){
@@ -98,7 +112,7 @@
     <div class="grid_8 push_2">
         <div class="error">
             Course Registration is now closed. For any inquiries or requests, please contact <br/>
-            Mr.Rahman at urahman@fiu.edu. You may change your course choice after this <br/>
+            Pablo Currea at jcurr001@fiu.edu. You may change your course choice after this <br/>
             semester by appointment.
         </div>
     </div>
