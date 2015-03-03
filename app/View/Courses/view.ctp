@@ -22,7 +22,7 @@
         <?php if ($course_details['Course']['specialMessage']) { ?>
                 <h3><?php echo utf8_encode($course_details['Course']['specialMessage']); ?></h3>
         <? } else { ?>
-                <h3>This class is a special enrollment class. Please contact Pablo Currea at <a href="mailto:jcurr001@fiu.edu">jcurr001@fiu.edu</a> if you want to get into this class.</h3>
+                <h3>This class is a special enrollment class. Please contact Pablo Currea at <a href="mailto:jpcurrea@fiu.edu">jpcurrea@fiu.edu</a> if you want to get into this class.</h3>
         <?php } ?>
         </div>
     <?php } ?>
