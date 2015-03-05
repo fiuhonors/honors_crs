@@ -19,18 +19,19 @@
            <?php
            echo $this->Html->tableCells(
                    array(
-                       "Course ID",
-                       "Catalog",
-                       "Section",
-                       "Instructor",
-                       "Capacity",
-                       "Occupied Capacity",
+                       $this->Html->link("Course ID", array('controller'=>'courses', 'action'=>'enrollment', 'id', 'ASC')),
+                       $this->Html->link("Catalog", array('controller'=>'courses', 'action'=>'enrollment', 'catalog', 'ASC')),
+                       $this->Html->link("Section", array('controller'=>'courses', 'action'=>'enrollment', 'section', 'ASC')),
+                       $this->Html->link("Instructor", array('controller'=>'courses', 'action'=>'enrollment', 'instructor', 'ASC')),
+                       $this->Html->link("Title", array('controller'=>'courses', 'action'=>'enrollment', 'title', 'ASC')),
+                       $this->Html->link("Capacity", array('controller'=>'courses', 'action'=>'enrollment', 'capacity', 'ASC')),
+                       $this->Html->link("Occupied Capacity", array('controller'=>'courses', 'action'=>'enrollment', 'oc_capacity', 'ASC')),
                        "Actual OC",
                        "Status",
                        "Lock Class"
                    )
                    );
-           
+            
             foreach($courses as $course){
                 $importance='';
                 $realcount = $courses_realcount[$course['Course']['catalog']][$course['Course']['section']];
@@ -48,6 +49,7 @@
                             $course['Course']['catalog'],
                             $course['Course']['section'],
                             $course['Course']['instructor'],
+                            $course['Course']['title'],
                             $course['Course']['capacity'],
                             $course['Course']['oc_capacity'],
                             $this->Html->link($realcount, 

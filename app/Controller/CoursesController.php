@@ -88,7 +88,7 @@ class CoursesController extends AppController {
     }
     
     
-    public function admin_enrollment(){
+    public function admin_enrollment($sorter = "catalog", $order = "ASC"){
         $students = $this->Course->Student->find('all');
         $courses_list = array();
         foreach($students as $student){
@@ -97,7 +97,8 @@ class CoursesController extends AppController {
                 $courses_list[$course_catalog][$course_section] += 1;
             }
         }
-        $this->set('courses', $this->Course->find('all', array('order' => array('Course.catalog ASC', 'Course.section ASC'))));
+        // $this->set('courses', $this->Course->find('all', array('order' => array('Course.catalog ASC', 'Course.section ASC'))));
+        $this->set('courses', $this->Course->find('all', array('order' => array("Course.{$sorter} {$order}", 'Course.section ASC'))));
         $this->set('courses_realcount', $courses_list);
     }
     
@@ -219,9 +220,9 @@ class CoursesController extends AppController {
         
     }
 
+
     
     public function admin_edit($id = NULL) {
-
         if (empty($id)) {
             $this->Session->setFlash("No ID was provided to view/edit!", "default", array(
                 'class' => 'error'
@@ -235,6 +236,8 @@ class CoursesController extends AppController {
                 
                 list($this->request->data['Course']['date_from'], $this->request->data['Course']['date_to']) = explode("-", $this->request->data['Course']['date']);
             } else {
+                $class_catalog = $this->request->data['Course']['catalog'];
+                $class_section = $this->request->data['Course']['section'];
                 $syllabus_file = $this->request->data['Course']['syllabus']['tmp_name'];
 
                 if (!empty($syllabus_file) && is_uploaded_file($syllabus_file)) {
@@ -247,8 +250,7 @@ class CoursesController extends AppController {
                         $syllabus_file_ending = ".docx";
                     }
 
-                    $class_catalog = $this->request->data['Course']['catalog'];
-                    $class_section = $this->request->data['Course']['section'];
+                    
                     $syllabus_file_location = WWW_ROOT . 'files' . DS . str_replace(' ', '', $class_catalog) . '_' . $class_section . $syllabus_file_ending;
 
                     if (!move_uploaded_file($syllabus_file, $syllabus_file_location)) {
@@ -261,15 +263,50 @@ class CoursesController extends AppController {
 
                 $this->request->data['Course']['date'] = $this->request->data['Course']['date_from'] . "-" . $this->request->data['Course']['date_to'];
 
+                if (!empty($this->request->data['Course']['add_students'])) {
+                    $p_ids = explode(",", $this->request->data['Course']['add_students']);
+                    $this->loadModel('Student');
+                    foreach ($p_ids as $p_id) {                        
+                        if($this->Student->findById($p_id)) {
+                            // Get information about that student
+                            $student_result = $this->Student->findById($p_id);
+                            // Check if previous f_schedule is the same as new f_schedule. If not, check which class is newly added, and check which class is removed
+                            $new_schedule = array($class_catalog => $class_section);
+                            $old_schedule = unserialize($student_result['Student']['f_schedule']);
+                            if (!empty($old_schedule)) {
+                                if(!in_array($new_schedule, $old_schedule)) {
+                                    // There is a section for that catalog in new schedule - Increment
+                                    if(!empty($class_section)) {
+                                        $this->request->data['Course']['oc_capacity'] += 1;
+                                        $this->Student->updateAll(
+                                            array('Student.f_schedule' => "'" . serialize(array_merge($old_schedule, $new_schedule)) . "'"),
+                                            array('Student.id' => $p_id)
+                                        );
+                                    }
+                                }
+                            }else {
+                                if(!empty($class_section)){
+                                        $this->request->data['Course']['oc_capacity'] += 1;
+                                        $this->Student->updateAll(
+                                            array('Student.f_schedule' => serialize($new_schedule)),
+                                            array('Student.id' => $p_id)
+                                        );
+                                }
+                            }
+                        }
+                    }
+                }
+
                 if ($this->Course->saveAll($this->request->data)) {
                     $this->Session->setFlash('Course edit has been saved.', 'default', array('class' => 'success'));
                     return $this->redirect(array('controller' => 'courses', 'action' => 'search'));
                 } else {
                     $this->Session->setFlash('Cannot validate. Check errors below.', 'default', array('class' => 'error'));
                 }
+
+                
             }
-        }
-        
+        }       
     }
     
     
@@ -298,17 +335,20 @@ class CoursesController extends AppController {
         $student_data = $this->Course->Student->findById($this->Auth->user('id'));
         $student_schedule = unserialize($student_data['Student']['f_schedule']);
         $student_schedule = empty($student_schedule) ? array() : $student_schedule;
+        $past_schedule = unserialize($student_data['Student']['pp_schedule']);
+        $past_schedule = empty($past_schedule) ? array() : $past_schedule;
         $this->set('student_schedule_lock', unserialize($student_data['Student']['f_schedule_lock']));
         $this->set('student_term_entered', $student_data['Student']['term_entered']);
 		$this->set('student_schedule', $student_schedule);
-		
+        $this->set('past_schedule', $past_schedule);
+        		
         // Set this to global scope so they're accessible to whole method.
         $course_choices = array();
         $course_choices_labels = array(
             '1001' => 'IDH 1001-1002 Classes (Required)',
             '1931' => 'IDH 1931: First-Year (Required - If you have equal to/greater than 60 credits, contact Administration)',
-            '2003' => 'IDH 2003-2004 Classes (Required)',
-            '3034' => 'IDH 3034-3035 Classes (Required)',
+            '2003' => 'Second Year Classes (Required)',
+            '3034' => 'Upper Division Classes (Required)',
             '4007' => 'IDH 4007-4008 Classes (Required)',
             'SA' => 'Study Abroad Options (Optional)',
             'ARCH' => 'Advanced Research and Creativity in Honors (Optional)'
@@ -328,9 +368,9 @@ class CoursesController extends AppController {
         }elseif($this->Auth->user('grade_level') == 2) {
             $course_choices = array('3034','ARCH','SA');
         }elseif($this->Auth->user('grade_level') == 3) {
-            $course_choices = array('4007','ARCH','SA');
+            $course_choices = array('3034','ARCH','SA');
         }elseif($this->Auth->user('grade_level') == 4) {
-            $course_choices = array('4007','ARCH','SA');
+            $course_choices = array('3034','ARCH','SA');
         }
         
         $this->set('course_types', $course_types);
@@ -339,8 +379,16 @@ class CoursesController extends AppController {
         for($i=0; $i<count($course_types); $i++){
             $this->set($course_types[$i], $this->Course->find('all',
                 array(
-                    'conditions' => array('Course.catalog' => array($course_choices[$i])),
-                    'order' => array('Course.location' => 'DESC')
+                    'conditions' => array(
+                        'Course.catalog' => array($course_choices[$i]), 
+                    ),
+                    'order' => array(
+                        'Course.special' => 'ASC',
+                        'Course.term' => 'DESC',
+                        'Course.location' => 'DESC', 
+                        'Course.oc_capacity' => 'ASC',
+                        'Course.title' => 'DESC'
+                    )
                 ))
             );
             $this->set($course_types[$i].'_label', $course_choices_labels[$course_choices[$i]]);

@@ -55,12 +55,21 @@
                 'label' => 'Meeting Times',
                 'placeholder' => 'Times/Days class will meet e.g. M10:15AM-11:15AM, W2:00PM-3:15PM'
             ));
+            echo $this->Form->input('syllabus', array(
+               'label' => 'Upload Syllabus Document',
+                'type' => 'file'
+            ));
+            echo $this->Form->input("uploaded_file");
             
             
         ?>
         </div>
         <div class='grid_6 omega'>
         <?php
+            echo $this->Form->input('title', array(
+                'label' => 'Class Title',
+                'placeholder' => 'Title from the syllabus, e.g. The Middle Circle'
+            ));
             echo $this->Form->input('location', array(
                 'label' => 'Meeting Location',
                 'placeholder' => 'Location of this class e.g. GC203, SIPA125'
@@ -76,13 +85,16 @@
                 'type' => 'textarea'
             ));
             echo $this->Form->input('capacity', array(
-               'placeholder' => 'Capacity of students this class can hold. e.g. 10, 20' 
+                'placeholder' => 'Capacity of students this class can hold. e.g. 10, 20' 
             ));
-            echo $this->Form->input('syllabus', array(
-               'label' => 'Upload Syllabus Document',
-                'type' => 'file'
+            echo $this->Form->input('oc_capacity', array(
+                'label' => 'Students Enrolled',
+                'placeholder' => 'Enrollment of students in this class. e.g. 10, 20' 
             ));
-            echo $this->Form->input("uploaded_file");
+            echo $this->Form->input('add_students', array(
+               'placeholder' => 'List of student I.D.s to register in this class, e.g. 1234567,7654321',
+               'type' => 'text' 
+            ));
             echo $this->Form->end('Edit Class');
         ?>
         </div>
