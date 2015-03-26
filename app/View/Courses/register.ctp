@@ -1,4 +1,3 @@
-<?php if($student_term_entered == "Fall 2015" || empty($student_schedule)){ ?>
 <div class='container_12'>
     <div class='grid_12'>
         <h2>Course Selection</h2>
@@ -96,8 +95,8 @@
     <?php echo $this->Form->end(); ?>
 </div>
 
-<?php }else{ ?>
-
+<?php
+/*
 <div class="container_12">
     <div class="grid_8 push_2">
         <div class="error">
@@ -107,5 +106,5 @@
         </div>
     </div>
 </div>
-
-<?php } ?>
+*/
+?>
