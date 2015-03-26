@@ -24,8 +24,8 @@
             <?php echo $this->Session->flash(); ?>
         </div>
         <div class='grid_6 prefix_3 suffix_3'>
-            <div class='error_noknob'>
-                CRS is currently closed. Get ready for the CRS presentation and walkthrough Honors events starting Tuesday, March 3 2015!
+            <div class='success_noknob'>
+                CRS is now open! You can now register for your classes.
             </div>
         </div>  
 </div>

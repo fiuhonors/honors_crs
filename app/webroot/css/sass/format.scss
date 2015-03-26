@@ -44,6 +44,12 @@ hr{
     background-image: url('../img/Knob Valid Green.png');
 }
 
+:not(form) > div > .success_noknob, :not(form) > div > div > .success_noknob{
+    @extend .info_box;
+    color: #4F8A10;
+    background-color: #DFF2BF;
+}
+
 form{
         display:inline-block;
 	width:100%;
