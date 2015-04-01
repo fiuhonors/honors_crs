@@ -11,7 +11,8 @@
                        "Last Name",
                        "First Name",
                        "Email",
-                       "Grade Level"
+                       "Grade Level",
+                       "Locked"
                    )
                    );
            
@@ -39,7 +40,8 @@
                             $student['Student']['last_name'],
                             $student['Student']['first_name'],
                             $student['Student']['email'],
-                            $grade_level
+                            $grade_level,
+                            (strpos($student['Student']['f_schedule_lock'], $class['catalog']) !== false ? 1 : 0)
                         )
                         );
             }

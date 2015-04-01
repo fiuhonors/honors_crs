@@ -10,12 +10,12 @@ class CoursesController extends AppController {
 
     var $layout = 'admin';
     var $helpers = array('CourseDisplay');
-    
+
     public function beforeFilter() {
         parent::beforeFilter();
     }
-    
-    
+
+
     public function admin_add() {
 
         if (!empty($this->request->data)) {
@@ -57,10 +57,10 @@ class CoursesController extends AppController {
                 $this->Session->setFlash("Cannot validate. Check errors below.", 'default', array('class' => 'error'));
             }
         }
-        
+
     }
 
-    
+
     public function admin_addBulk() {
 
         $file = $this->request->data['Course']['file']['tmp_name'];
@@ -80,47 +80,58 @@ class CoursesController extends AppController {
             $this->Session->setFlash("Mass Add has been processed succesfully!", 'default', array('class' => 'success'));
             return $this->redirect(array('controller' => 'courses', 'action' => 'add'));
         } else { 
-           $inputErrors = $this->Course->csvErrorsAsString();  
+            $inputErrors = $this->Course->csvErrorsAsString();  
             $this->Session->setFlash("Something went wrong with the request. CSV data inputs are invalid. <br/> $inputErrors", 'default', array('class' => 'error'));
             return $this->redirect(array('controller' => 'courses', 'action' => 'add'));
         }
-        
+
     }
-    
-    
+
+
     public function admin_enrollment($sorter = "catalog", $order = "ASC"){
-        $students = $this->Course->Student->find('all');
+        $students = serialize ($this->Course->Student->find('all', array('fields' => 'Student.f_schedule')));
         $courses_list = array();
-        foreach($students as $student){
-            $student_courses = unserialize($student['Student']['f_schedule']);
-            foreach($student_courses as $course_catalog => $course_section){
-                $courses_list[$course_catalog][$course_section] += 1;
+        $courses = $this->Course->find('all', array('order' => array("Course.{$sorter} {$order}", 'Course.section ASC')));
+        foreach($courses as $class) {
+            foreach ($class as $course) {
+                $sect = $course["section"];
+                $cata = $course["catalog"];
+                $s_len = strlen($sect);
+                if (intval($cata) == 0) {
+                    $sub = "{$cata}\";s:{$s_len}:\"{$sect}\"";
+                } else {
+                $cata = intval($cata);
+                $sub = "{$cata};s:{$s_len}:\"{$sect}\"";
+                $courses_list[$cata][$sect] = substr_count($students, $sub);
+                }
             }
         }
-        // $this->set('courses', $this->Course->find('all', array('order' => array('Course.catalog ASC', 'Course.section ASC'))));
         $this->set('courses', $this->Course->find('all', array('order' => array("Course.{$sorter} {$order}", 'Course.section ASC'))));
         $this->set('courses_realcount', $courses_list);
     }
-    
-    
+
+
     public function admin_registrees($course_catalog,$course_section){
-        $students = $this->Course->Student->find('all');
-        $students_list = array();
-        foreach($students as $student){
-            $student_courses = unserialize($student['Student']['f_schedule']);
-            if($student_courses[$course_catalog] == $course_section){
-                $students_list[] = $student;
-            }
+        $sect = $course_section;
+        $cata = $course_catalog;
+        $s_len = strlen($sect);
+        if (intval($cata) == 0) {
+            $sub = "{$cata}\";s:{$s_len}:\"{$sect}\"";
+        } else {
+            $cata = intval($cata);
+            $sub = "{$cata};s:{$s_len}:\"{$sect}\"";
         }
-        $this->set('students', $students_list);
+        $students = $this->Course->Student->find('all', array('conditions' => array('Student.f_schedule LIKE' =>  '%' . $sub . '%')));
+        $this->set('class', array('catalog' => $course_catalog, 'section' => $course_seciton));
+        $this->set('students', $students);
     }
-    
-    
+
+
     public function admin_lock_confirm($course_catalog,$course_section) {
         $this->set('course_catalog', $course_catalog);
         $this->set('course_section', $course_section);
     }
-    
+
     public function admin_lockAction($course_catalog, $course_section, $confirmed) {
         if (isset($confirmed) && $confirmed == true) {
             $this->loadModel('Student');
@@ -153,7 +164,7 @@ class CoursesController extends AppController {
         }
         return $this->redirect(array('controller' => 'courses', 'action' => 'enrollment'));
     }
-    
+
     public function admin_unlockAction($course_catalog, $course_section, $confirmed) {
         if (isset($confirmed) && $confirmed == true) {
             $this->loadModel('Student');
@@ -179,7 +190,7 @@ class CoursesController extends AppController {
                             $this->Student->saveField("f_schedule_lock", "");
                         }
                     }
-                    
+
                 }
             }
             $this->Session->setFlash("Students of $course_catalog".':'."$course_section were succesfully unlocked.", "default", array(
@@ -193,12 +204,12 @@ class CoursesController extends AppController {
         return $this->redirect(array('controller' => 'courses', 'action' => 'enrollment'));
     }
 
-    
+
     public function admin_search() {
 
         if (!empty($this->request->query['search'])) {
             $searchString = $this->request->query['search'];
-            
+
             if (is_numeric($searchString)) {
                 $course_results = $this->Course->findAllById($searchString);
                 if (count($course_results) == 0) {
@@ -217,11 +228,11 @@ class CoursesController extends AppController {
 
             $this->set('courses', $course_results);
         }
-        
+
     }
 
 
-    
+
     public function admin_edit($id = NULL) {
         if (empty($id)) {
             $this->Session->setFlash("No ID was provided to view/edit!", "default", array(
@@ -233,7 +244,7 @@ class CoursesController extends AppController {
             if (!$this->request->data) {
                 $course_result = $this->Course->findById($id);
                 $this->request->data = $course_result;
-                
+
                 list($this->request->data['Course']['date_from'], $this->request->data['Course']['date_to']) = explode("-", $this->request->data['Course']['date']);
             } else {
                 $class_catalog = $this->request->data['Course']['catalog'];
@@ -250,7 +261,7 @@ class CoursesController extends AppController {
                         $syllabus_file_ending = ".docx";
                     }
 
-                    
+
                     $syllabus_file_location = WWW_ROOT . 'files' . DS . str_replace(' ', '', $class_catalog) . '_' . $class_section . $syllabus_file_ending;
 
                     if (!move_uploaded_file($syllabus_file, $syllabus_file_location)) {
@@ -286,11 +297,11 @@ class CoursesController extends AppController {
                                 }
                             }else {
                                 if(!empty($class_section)){
-                                        $this->request->data['Course']['oc_capacity'] += 1;
-                                        $this->Student->updateAll(
-                                            array('Student.f_schedule' => serialize($new_schedule)),
-                                            array('Student.id' => $p_id)
-                                        );
+                                    $this->request->data['Course']['oc_capacity'] += 1;
+                                    $this->Student->updateAll(
+                                        array('Student.f_schedule' => serialize($new_schedule)),
+                                        array('Student.id' => $p_id)
+                                    );
                                 }
                             }
                         }
@@ -304,44 +315,48 @@ class CoursesController extends AppController {
                     $this->Session->setFlash('Cannot validate. Check errors below.', 'default', array('class' => 'error'));
                 }
 
-                
+
             }
         }       
     }
-    
-    
+
+
     public function view($course_id){
         $this->layout = "student";
         if(!is_numeric($course_id)){
             $this->Session->setFlash("Course ID provided was invalid.", 'default', array('class' => 'error'));
             return false;
         }
-        
+
         $course_details = $this->Course->findById($course_id);
         if(empty($course_details)){
             $this->Session->setFlash("Course with that ID does not exist in the system.", 'default', array('class' => 'error'));
             return false;
         }
-        
+
         list($course_details['Course']['date-from'], $course_details['Course']['date_to']) = $course_details['Course']['date'];
         $this->set('course_details', $course_details);
     }
-    
-        
+
+
     public function register() {
-		
         $this->layout = "student";
+        
         // Check if student is already registered.
         $student_data = $this->Course->Student->findById($this->Auth->user('id'));
         $student_schedule = unserialize($student_data['Student']['f_schedule']);
         $student_schedule = empty($student_schedule) ? array() : $student_schedule;
+        $student_schedule_possible = unserialize($student_data['Student']['f_schedule_possible']);
+        $student_schedule_possible = empty($student_schedule_possible) ? array() : $student_schedule_possible;
+        $student_schedule_lock = unserialize($student_data['Student']['f_schedule_lock']);
+        $student_schedule_lock = empty($student_schedule_lock) ? array() : $student_schedule_lock;
         $past_schedule = unserialize($student_data['Student']['pp_schedule']);
         $past_schedule = empty($past_schedule) ? array() : $past_schedule;
-        $this->set('student_schedule_lock', unserialize($student_data['Student']['f_schedule_lock']));
+        $this->set('student_schedule_lock', $student_schedule_lock);
         $this->set('student_term_entered', $student_data['Student']['term_entered']);
-		$this->set('student_schedule', $student_schedule);
+        $this->set('student_schedule', $student_schedule);
         $this->set('past_schedule', $past_schedule);
-        		
+
         // Set this to global scope so they're accessible to whole method.
         $course_choices = array();
         $course_choices_labels = array(
@@ -355,10 +370,10 @@ class CoursesController extends AppController {
         );
         // Default configuration. Required courses must go first.
         $course_types = array('required_courses', 'optional_courses', 'optional_courses2');
-        
+
         // Set Model recursive to just Course Table of database
         $this->Course->recursive = -1;
-        
+
         // Set Course Choices
         if($this->Auth->user('grade_level') == 0) {
             $course_choices = array('1001','1931','SA');
@@ -372,48 +387,56 @@ class CoursesController extends AppController {
         }elseif($this->Auth->user('grade_level') == 4) {
             $course_choices = array('3034','ARCH','SA');
         }
-        
+
         $this->set('course_types', $course_types);
-        
+
         // Loop through course types and get appropriate classes
         for($i=0; $i<count($course_types); $i++){
             $this->set($course_types[$i], $this->Course->find('all',
-                array(
-                    'conditions' => array(
-                        'Course.catalog' => array($course_choices[$i]), 
-                    ),
-                    'order' => array(
-                        'Course.special' => 'ASC',
-                        'Course.term' => 'DESC',
-                        'Course.location' => 'DESC', 
-                        'Course.oc_capacity' => 'ASC',
-                        'Course.title' => 'DESC'
-                    )
-                ))
-            );
+                                                              array(
+                                                                  'conditions' => array(
+                                                                      'Course.catalog' => array($course_choices[$i]), 
+                                                                  ),
+                                                                  'order' => array(
+                                                                      'Course.special' => 'ASC',
+                                                                      'Course.term' => 'DESC',
+                                                                      'Course.location' => 'DESC', 
+                                                                      'Course.oc_capacity' => 'ASC',
+                                                                      'Course.title' => 'DESC'
+                                                                  )
+                                                              ))
+                      );
             $this->set($course_types[$i].'_label', $course_choices_labels[$course_choices[$i]]);
             $this->set($course_types[$i].'_catalog', $course_choices[$i]);
         }
-            
+
         if ($this->request->is('post')) {
+            
+            $this->loadModel('CourseChange');
+            
             if(empty($this->request->data['Course']['verification'])){
                 $this->Session->setFlash("You must accept the Class Registration Terms.", 'default', array('class' => 'error'));
                 return false;
             }
-            
+
             $student_schedule_new = $student_schedule; // Holds Student's Course Choices.
+            $student_schedule_new_possible = $student_schedule_possible;
+            
             $course_errors = ''; // Holds any errors with registration.
             $course_successes = ''; // Holds information success messages for registration.
+            
             // Make sure all required courses were filled
             foreach($course_types as $course_type){
                 // Increment Class's Occupied Capacity.
-                $course_chosen_identifier = $this->request->data['Course'][$course_type.'_chosen'];
-                
+                if (array_key_exists($course_type.'_chosen', $this->request->data['Course'])) {
+                    $course_chosen_identifier = $this->request->data['Course'][$course_type.'_chosen'];
+                }
+
                 /* If the Course was a required course, check if they already have a required course in their schedule. If not,
                  * stop code execution and ask that they register for one ASAP!
                  */
                 if(strpos($course_type, 'required') !== false && empty($course_chosen_identifier)){
-                    // If there is no class in student schedule, student hasn't signed up for a registered class!
+                    // If there is no class in student's schedule, student hasn't signed up for a required class!
                     if(empty($student_schedule)){
                         $this->Session->setFlash("A required class must be chosen.", 'default', array('class' => 'error'));
                         $this->Auth->redirect(array('controller' => 'courses', 'action' => 'register'));
@@ -421,56 +444,129 @@ class CoursesController extends AppController {
                     }
                 }
             }
-            
+
             // Get each course type set
             foreach($course_types as $course_type){
                 // Increment Class's Occupied Capacity.
                 $course_chosen_identifier = $this->request->data['Course'][$course_type.'_chosen'];
-                
-                if(!empty($course_chosen_identifier)){
-                    list($course_chosen_id, $course_chosen_catalog, $course_chosen_section) = explode(',', $course_chosen_identifier);
-                    if(is_numeric($course_chosen_id) && $course_chosen_id > 0){
-                        // If Course with same catalog and section already exists in student's schedule, do not add!
-                        if($student_schedule[$course_chosen_catalog] == $course_chosen_section){
-                            $course_errors .= "That course is already in your cart. <br/>";
-                        }
-                        
-                        // If the Course exists, and there are still seats, add student to class.
-                        $course_sql = $this->Course->updateAll(
-                                array('Course.oc_capacity' => 'Course.oc_capacity + 1'),
-                                array('Course.id' => $course_chosen_id, 'Course.capacity > Course.oc_capacity')
-                        );
-                        // If Course was updated, add Course to student's schedule, or else, pass error message.
-                        if($this->Course->getAffectedRows() > 0){
-                            // If Student registered for a class with same Catalog before, unregister him/her there and replace
-                            if(array_key_exists($course_chosen_catalog, $student_schedule_new)){
-                                $course_successes .= "$course_chosen_catalog - Section $student_schedule[$course_chosen_catalog] has been removed "
-                                        . "and $course_chosen_catalog - Section $course_chosen_section has been added to your course cart. <br/>";
-                                $this->Course->updateAll(
-                                        array('Course.oc_capacity' => 'Course.oc_capacity - 1'),
-                                        array('Course.catalog' => $course_chosen_catalog, 'Course.section' => $student_schedule[$course_chosen_catalog])
-                                );
-                                $student_schedule_new[$course_chosen_catalog] = $course_chosen_section;
-                            }else{
-                                $course_successes .= "$course_chosen_catalog - Section $course_chosen_section was added to your course cart.<br/>";
-                                $student_schedule_new[$course_chosen_catalog] = $course_chosen_section;
-                            }
-                        }else{
-                            $course_errors .= "Failed to register for $course_chosen_catalog - Section $course_chosen_section class. Capacity Full <br/>";
-                        }
-                    }
+                $course_chosen_message = $this->request->data['Course'][$course_type . '_message'];
+
+                if(empty($course_chosen_identifier)) {
+                    continue;
                 }
-                            
+
+                list($course_chosen_id, $course_chosen_catalog, $course_chosen_section) = explode(',', $course_chosen_identifier);
+
+                if (!is_numeric($course_chosen_id) || $course_chosen_id < 1) {
+                    continue;   
+                }
+                
+                // If Course with same catalog and section already exists in student's schedule, do not add!
+                if($student_schedule[$course_chosen_catalog] == $course_chosen_section){
+                    $course_errors .= "That course is already in your cart. <br/>";
+                    continue;
+                }
+                
+                // If student is locked for this specific catalog#, place it as a request.
+                if (is_array($student_schedule_lock) 
+                    && count($student_schedule_lock) > 0
+                    && in_array($course_chosen_catalog, $student_schedule_lock)   
+                ) {
+                    if (empty($course_chosen_message)) {
+                        $course_errors 
+                            .= "Please specify a reason for changing out of a locked class of catalog - $course_chosen_catalog.";
+                        continue;
+                    }
+                    $student_schedule_new_possible[$course_chosen_catalog] = $course_chosen_section;
+                    
+                    $course_successes 
+                        .= "A request was placed to move you to " . "$course_chosen_catalog - Section $course_chosen_section <br/>";
+                    
+                    $this->Course->Student->updateAll(
+                        array('Student.f_schedule_possible' 
+                              => "'" . serialize($student_schedule_new_possible) . "'"
+                             ),
+                        array('Student.id' => $this->Auth->user('id'))
+                    );
+                    
+                    $identicalCourseChanges = $this->CourseChange->find('count', array(
+                       'conditions' => array(
+                            'CourseChange.student_id' => $this->Auth->user('id'),
+                            'CourseChange.catalog' => $course_chosen_catalog,
+                            'CourseChange.section' => $course_chosen_section
+                       )
+                    ));
+                    
+                    if ($identicalCourseChanges < 1) {
+                        $this->CourseChange->saveAll(
+                            array(
+                                'CourseChange' => array(
+                                    'timestamp' => time(),
+                                    'student_id' => $this->Auth->user('id'),
+                                    'course_id' => $course_chosen_id,
+                                    'catalog' => $course_chosen_catalog,
+                                    'past_section' => $student_schedule[$course_chosen_catalog],
+                                    'section' => $course_chosen_section,
+                                    'reason' => $course_chosen_message
+                                )
+                            )
+                        );
+                    } else {
+                        $this->CourseChange->updateAll(
+                            array(
+                                'CourseChange.timestamp' => time(),
+                                'CourseChange.course_id' => $course_chosen_id,
+                                'CourseChange.reason' => "'" . $course_chosen_message . "'",
+                                'CourseChange.section' => "'" . $course_chosen_section . "'"
+                            ),
+                            array(
+                                'CourseChange.student_id' => $this->Auth->user('id'),
+                                'CourseChange.catalog' => $course_chosen_catalog
+                            )
+                        );
+                    }
+                    continue;
+                }
+
+                // If the Course exists, and there are still seats, add student to class.
+                $course_sql = $this->Course->updateAll(
+                    array('Course.oc_capacity' => 'Course.oc_capacity + 1'),
+                    array('Course.id' => $course_chosen_id, 'Course.capacity > Course.oc_capacity')
+                );
+                // If Course was updated, add Course to student's schedule, or else, pass error message.
+                if($this->Course->getAffectedRows() > 0){
+                    // If Student registered for a class with same Catalog before, unregister him/her there and replace
+                    if(array_key_exists($course_chosen_catalog, $student_schedule_new)){
+                        $course_successes .= "$course_chosen_catalog - Section $student_schedule[$course_chosen_catalog] has been removed "
+                            . "and $course_chosen_catalog - Section $course_chosen_section has been added to your course cart. <br/>";
+                        $this->Course->updateAll(
+                            array('Course.oc_capacity' => 'Course.oc_capacity - 1'),
+                            array('Course.catalog' => $course_chosen_catalog, 
+                                  'Course.section' => $student_schedule[$course_chosen_catalog]
+                                 )
+                        );
+                        $student_schedule_new[$course_chosen_catalog] = $course_chosen_section;
+                    }else{
+                        $course_successes .= "$course_chosen_catalog - Section $course_chosen_section was added to your course cart.<br/>";
+                        $student_schedule_new[$course_chosen_catalog] = $course_chosen_section;
+                    }
+                }else{
+                    $course_errors 
+                        .= "Failed to register for $course_chosen_catalog - Section $course_chosen_section class. Capacity Full <br/>";
+                }
+
             }
-            
+
             // Store Schedule Array of Student to database
             $this->Course->Student->updateAll(
-                    array('Student.f_schedule' => "'" . serialize($student_schedule_new) . "'"),
-                    array('Student.id' => $this->Auth->user('id'))
+                array('Student.f_schedule' => "'" . serialize($student_schedule_new) . "'"),
+                array('Student.id' => $this->Auth->user('id'))
             );
-            
+
             if(empty($course_errors)){
-                $this->Session->setFlash($course_successes, 'default', array('class' => 'success'));
+                if (!empty($course_successes)) {
+                    $this->Session->setFlash($course_successes, 'default', array('class' => 'success'));
+                }
             }else{
                 $this->Session->setFlash($course_errors, 'default', array('class' => 'error'));
             }
@@ -478,7 +574,7 @@ class CoursesController extends AppController {
             // Avoid browser refreshing and reposting POST data!
             $this->redirect(array('controller' => 'courses', 'action' => 'register'));
         }
-        
+
     }
 
 }

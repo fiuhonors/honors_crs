@@ -12,17 +12,40 @@
     <?php 
     echo $this->Form->create('Course');
     foreach($course_types as $course_type){
-        if(!empty(${$course_type}) && !in_array(${$course_type.'_catalog'}, $student_schedule_lock)){
+        if(!empty(${$course_type})) {
     ?>
+        <div class="grid_12">
+            <hr>
+        </div>
+        <?php
+            if (in_array(${$course_type.'_catalog'}, $student_schedule_lock)) {
+        ?>
+                <div class="container_12" style="margin:0;">
+                    <div class="grid_12" style="margin-top:0;margin-bottom:0;">
+                        <div class="error_noknob" style="margin-top:0;margin-bottom:0;">
+                            You are currently locked into a class of Catalog <?php echo ${$course_type.'_catalog'}; ?>.
+                        </div>
+                    </div>
+                </div>
+        <?php
+            }
+        ?>
         <div class='grid_12'>
             <table>
                 <tbody>
-                <?php
-                
+                <?php    
                     if(isset(${$course_type.'_label'})){
                         echo "<h3 class='bold'>${$course_type.'_label'} - choose one</h3>";
                     }
-                    
+                    if (in_array(${$course_type.'_catalog'}, $student_schedule_lock)) {
+                        echo $this->Form->input($course_type . '_message', array(
+                            'label' => 'Reason for switching out of locked class',
+                            'placeholder' => 
+                                'You are locked into a class of catalog ' . ${$course_type.'_catalog'} . 
+                                '. Should you choose to switch, please provide your reasoning here.',
+                            'type' => 'textarea'
+                        ));
+                    }
                     echo $this->Html->tableCells(array('Term','Date','Time','Location','Instructor','Description'));
                     foreach(${$course_type} as $course){
                         $enrollmentElement = "";
@@ -67,17 +90,6 @@
             </table>
         </div>
     <?php 
-        } else if (in_array(${$course_type.'_catalog'}, $student_schedule_lock)) {
-    ?>
-        <div class="container_12">
-            <div class="grid_12">
-                <div class="error">
-                   You have been locked from choosing a course of type <?php echo ${$course_type.'_catalog'}; ?>.
-                </div>
-            </div>            
-        </div>
-            
-    <?php
         }
     } 
     ?>
